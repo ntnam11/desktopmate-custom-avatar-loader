@@ -12,7 +12,7 @@
 		<AssemblyName>CustomAvatarLoader</AssemblyName>
 		<LangVersion>latest</LangVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<GamePath Condition=" '$(GamePath)' == '' ">C:\Program Files (x86)\Steam\steamapps\common\Desktop Mate</GamePath>
+		<GamePath Condition=" '$(GamePath)' == '' ">E:\Games\steamapps\common\Desktop Mate</GamePath>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 	</PropertyGroup>
 	
@@ -415,6 +415,7 @@
 	<ItemGroup>
 		<Compile Include="AssemblyInfo.cs" />
 		<Compile Include="Core.cs" />
+		<Compile Include="Modules\DynamicBone.cs" />
 		<Compile Include="Helpers\FileHelper.cs" />
 		<Compile Include="Helpers\Updater.cs" />
 		<Compile Include="Helpers\VrmLoader.cs" />
@@ -423,6 +424,7 @@
 		<Compile Include="Logging\ILogger.cs" />
 		<Compile Include="Logging\MelonLoaderLogger.cs" />
 		<Compile Include="Logging\PlayerLogManager.cs" />
+		<Compile Include="Modules\DynamicBoneColliderBase.cs" />
 		<Compile Include="Modules\IModule.cs" />
 		<Compile Include="Modules\VrmLoaderModule.cs" />
 		<Compile Include="Settings\ISettingsProvider.cs" />

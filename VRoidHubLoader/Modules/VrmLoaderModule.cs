@@ -5,6 +5,7 @@ namespace CustomAvatarLoader.Modules;
 
 using CustomAvatarLoader.Helpers;
 using Il2Cpp;
+using Il2CppInterop.Runtime.Injection;
 using MelonLoader;
 using UnityEngine;
 using ILogger = Logging.ILogger;
@@ -34,10 +35,13 @@ public class VrmLoaderModule : IModule
     private static extern int MessageBox(IntPtr hwnd, String text, String caption, uint type);
     
     protected virtual AsyncHelper AsyncHelper { get; set; }
-     
+
     public void OnInitialize()
     {
         AsyncHelper = new AsyncHelper();
+        ClassInjector.RegisterTypeInIl2Cpp<DynamicBone>();
+        ClassInjector.RegisterTypeInIl2Cpp<Particle>();
+        ClassInjector.RegisterTypeInIl2Cpp<ParticleTree>();
     }
 
     public async void OnUpdate()
@@ -76,6 +80,31 @@ public class VrmLoaderModule : IModule
         }
     }
 
+    List<Transform> FlattenTransform(Transform root)
+    {
+        List<Transform> result = new();
+        Queue<Transform> queue = new();
+
+        queue.Enqueue(root);
+
+        while (queue.Count > 0)
+        {
+            Transform transform = queue.Dequeue();
+
+            if (transform == null) continue;
+
+            result.Add(transform);
+            int childCount = transform.childCount;
+
+            for (int i = 0; i < childCount; i++)
+            {
+                queue.Enqueue(transform.GetChild(i));
+            }
+        }
+
+        return result;
+    }
+
     public bool LoadCharacter(string path)
     {
         if (!File.Exists(path))
@@ -110,6 +139,24 @@ public class VrmLoaderModule : IModule
 
         MainManager manager = GameObject.Find("MainManager").GetComponent<MainManager>();
         manager.charaData = newCharaData;
+
+        GameObject hairRoot = GameObject.Find("Hair_Root");
+        if (hairRoot != null)
+        {
+            List<Transform> flattenedTransform = FlattenTransform(hairRoot.transform);
+
+            for (int i = 0; i < flattenedTransform.Count; i++) {
+                if (flattenedTransform[i].name.Contains("Hair_back"))
+                {
+                    Logger.Debug($"Found {flattenedTransform[i].name}");
+                    DynamicBone dynamicBone = flattenedTransform[i].gameObject.AddComponent<DynamicBone>();
+                    dynamicBone.m_Multithread = false;
+                    dynamicBone.m_ReferenceObject = flattenedTransform[i].parent;
+                    dynamicBone.m_DistanceToObject = (flattenedTransform[i].parent.position - flattenedTransform[i].position).magnitude;
+                    dynamicBone.m_Root = hairRoot.transform;
+                }
+            }
+        }
 
         Animator charaAnimator = newChara.GetComponent<Animator>();
         charaAnimator.applyRootMotion = true;
